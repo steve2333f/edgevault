@@ -12,11 +12,15 @@ export async function onRequestGet({ request, env }) {
     return json({ error: 'Invalid auth token' }, 401);
   }
 
+  const url = new URL(request.url);
+  const accountId = url.searchParams.get('accountId') || 'account-1';
+
   const supabase = supabaseAdmin(env);
   const { data, error } = await supabase
     .from('ea_trades')
     .select('*')
     .eq('user_id', uid)
+    .eq('account_id', accountId)
     .order('inserted_at', { ascending: false });
 
   if (error) return json({ error: error.message }, 500);
