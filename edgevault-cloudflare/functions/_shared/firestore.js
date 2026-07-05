@@ -18,3 +18,29 @@ export async function getUserSyncToken(env, uid) {
   const doc = await res.json();
   return doc.fields?.syncToken?.stringValue || null;
 }
+// Looks through users/{uid}/accounts/* to find which account a given
+// syncToken belongs to. Returns { accountId, name } or null if no match.
+export async function getAccountBySyncToken(env, uid, syncToken) {
+  const accessToken = await getGoogleAccessToken(
+    env.FIREBASE_SERVICE_ACCOUNT,
+    'https://www.googleapis.com/auth/datastore.readonly'
+  );
+
+  const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/users/${encodeURIComponent(uid)}/accounts`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Firestore read failed: ' + res.status);
+
+  const data = await res.json();
+  const docs = data.documents || [];
+
+  for (const doc of docs) {
+    const token = doc.fields?.syncToken?.stringValue;
+    if (token && token === syncToken) {
+      const parts = doc.name.split('/');
+      return { accountId: parts[parts.length - 1], name: doc.fields?.name?.stringValue || parts[parts.length - 1] };
+    }
+  }
+  return null;
+}
