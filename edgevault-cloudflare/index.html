@@ -581,7 +581,7 @@ self.addEventListener('fetch', e => {
   @media (max-width:767px){
     #calmFab{right:16px;bottom:158px;}
     #calmPanel{right:12px;left:12px;width:auto;bottom:158px;max-height:72vh;}
-    #voiceMicFab{right:12px;top:max(12px, env(safe-area-inset-top));}
+    #voiceMicFab{left:16px;bottom:158px;}
   }
 
   /* ===== FLOATING PILL NAV — draggable, edge-snapping, reorderable ===== */
@@ -830,50 +830,20 @@ self.addEventListener('fetch', e => {
     box-shadow: 0 0 10px rgba(201,151,74,0.22), inset 0 1px 0 rgba(255,255,255,0.08);
   }
 
-  /* Floating pill nav replaces the old top bar nav on ALL screen sizes */
-  nav{ display:none !important; }
-  #floatNav{ display:flex; }
   @media (max-width:767px){
+    nav{ display:none !important; }
+    #floatNav{ display:flex; }
     body{ padding-top:8px; padding-bottom:20px; }
     #swipeIndicator{ bottom:86px !important; }
     .toast{ bottom:90px !important; }
   }
+  @media (min-width:768px){
+    #floatNav, #fpillScrim, #fpillDrawer, #fpillDoneBtn{ display:none !important; }
+  }
   :root.light nav button.active{color:#fff;}
-  .panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:16px;box-shadow:0 0 0 1px rgba(0,0,0,0.2), 0 0 8px rgba(243,203,124,0.10);isolation:isolate;}
-  .panel::before{
-    content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:1;
-    background:linear-gradient(135deg,#c99a4a 0%,#a8791f 50%,#c99a4a 100%);
-    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor;
-    mask-composite:exclude;
-    opacity:0.55;
-  }
-  :root.light .panel{box-shadow:0 1px 4px rgba(28,27,24,0.05), 0 0 16px rgba(212,175,55,0.28);}
-  :root.light .panel::before{
-    padding:2px;
-    background:linear-gradient(135deg,#fffbe8 0%,#f3cb7c 25%,#d4af37 50%,#f3cb7c 75%,#fffbe8 100%);
-    filter:brightness(1.15) saturate(1.2);
-    opacity:1;
-  }
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;margin-bottom:16px;box-shadow:0 0 0 1.5px rgba(212,175,55,0.32);}
+  :root.light .panel{box-shadow:0 0 0 1.5px rgba(212,175,55,0.8), 0 1px 4px rgba(28,27,24,0.05);}
   .panel h2{font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:16px;letter-spacing:-0.005em;}
-
-  /* Stat cards get the same gold ring treatment — subtle in dark, shiny in light */
-  .stat-card{position:relative;isolation:isolate;}
-  .stat-card::before{
-    content:'';position:absolute;inset:0;border-radius:inherit;padding:1.2px;pointer-events:none;z-index:1;
-    background:linear-gradient(135deg,#c99a4a 0%,#a8791f 50%,#c99a4a 100%);
-    -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-    -webkit-mask-composite:xor;
-    mask-composite:exclude;
-    opacity:0.5;
-  }
-  :root.light .stat-card{box-shadow:0 0 10px rgba(243,203,124,0.18);}
-  :root.light .stat-card::before{
-    padding:1.6px;
-    background:linear-gradient(135deg,#fffbe8 0%,#f3cb7c 25%,#d4af37 50%,#f3cb7c 75%,#fffbe8 100%);
-    filter:brightness(1.15) saturate(1.2);
-    opacity:1;
-  }
 
   /* ===== Premium Win/Loss Donut Card ===== */
   .pv-card{width:92%;max-width:920px;margin-left:auto;margin-right:auto;background:linear-gradient(160deg,#14161c,#0d0e12);border:1px solid #272B34;border-radius:22px;padding:32px;box-shadow:0 0 18px rgba(201,151,0,0.06);}
@@ -973,8 +943,8 @@ self.addEventListener('fetch', e => {
     display:none !important;
   }
 
-  /* ===== MASTER FLOATING BUTTON — consolidates calm, theme & calc into one (mic stays standalone, top-left) ===== */
-  #pscFab, #calmFab, #themeToggle { display:none !important; }
+  /* ===== MASTER FLOATING BUTTON — consolidates mic, calm, theme & calc into one ===== */
+  #pscFab, #calmFab, #voiceMicFab, #themeToggle { display:none !important; }
 
   #masterFab {
     position:fixed; right:18px; bottom:18px; z-index:700;
@@ -2663,7 +2633,7 @@ buildDrawerItems();
           }
           closeBookDrawer();
           switchToTab(t.id);
-          showTabTitleBanner(t.name);
+          showTabTitleBanner(t.icon + ' ' + t.name);
         };
         list.appendChild(item);
       });
@@ -2696,6 +2666,7 @@ buildDrawerItems();
     bannerText.textContent = label;
     banner.classList.add('visible');
     clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(function(){ banner.classList.remove('visible'); }, 1800);
   };
 
   // Also trigger banner on pill tab clicks
@@ -2715,6 +2686,7 @@ buildDrawerItems();
     { id:'themeToggle', html: isLight ? '☀️' : '🌙' },
     { id:'pscFab',      html: pscIcon ? pscIcon.innerHTML : '📐' },
     { id:'calmFab',     html: calmIcon ? calmIcon.innerHTML : '🧘' },
+    { id:'voiceMicFab', html: '🎙️' },
   ];
 
   var fab = document.createElement('button');
@@ -3046,7 +3018,7 @@ function render(){
     else if(_tab==='coach') root.appendChild(renderCoach());
     else if(_tab==='backtest') root.appendChild(renderBacktest());
     else if(_tab==='reminders') root.appendChild(renderReminders());
-    else if(_tab==='weeklyreport') root.appendChild(renderWeeklyReport());
+    else if(_tab==='weeklyreport') root.appendChild(isProUser() ? renderWeeklyReport() : renderProUpgradeTeaser('Weekly Report Card'));
     else if(_tab==='mt5import') root.appendChild(renderMT5Import());
     else if(_tab==='community') root.appendChild(renderCommunity());
   }catch(e){
@@ -3210,7 +3182,7 @@ function initVoiceMicFab(){
   trackVoiceTargets();
 
   const fab = el('button',{id:'voiceMicFab', title:'Tap a notes field first, then tap here to speak it in', style:`
-    position:fixed; right:16px; top:max(16px, env(safe-area-inset-top)); z-index:480;
+    position:fixed; left:22px; bottom:84px; z-index:480;
     width:52px;height:52px;border-radius:50%;border:1px solid rgba(212,175,55,0.4);cursor:pointer;
     background:linear-gradient(135deg, #1a1305 0%, #0a0a0c 100%);
     color:#D4AF37;display:flex;align-items:center;justify-content:center;font-size:20px;
@@ -4244,6 +4216,9 @@ async function saveTradeFromForm(){
   }
   const trade={
     id: tradeId,
+    accountId: editingTradeId
+      ? (DB.trades.find(x=>x.id===editingTradeId).accountId || window._evActiveAccountId || 'account-1')
+      : (window._evActiveAccountId || 'account-1'),
     datetime:get('datetime'), instrument:get('instrument').toUpperCase(), assetClass:get('assetClass')||guessAssetClass(get('instrument')), direction:get('direction'),
     riskPct:get('riskPct'), result:get('result'), exitTime:get('exitTime'), pnl:get('pnl'),
     rrReward:get('rrReward'),
@@ -5075,7 +5050,9 @@ function renderSessionDashboard(){
   const aiTextBox=el('div',{});
   aiTextBox.appendChild(el('div',{class:'ts-ai-title'},'AI Insight'));
   let tsInsight;
-  if(atMaxLoss) tsInsight='You\'ve hit your max daily loss. Step away — protecting capital today preserves your edge for tomorrow.';
+  if(!isProUser()){
+    tsInsight='Upgrade to Vault Pro to unlock personalized AI insights on every session.';
+  } else if(atMaxLoss) tsInsight='You\'ve hit your max daily loss. Step away — protecting capital today preserves your edge for tomorrow.';
   else if(nearMaxLoss) tsInsight='You\'re close to your daily loss limit. Only take A+ setups from here, or consider calling it for today.';
   else if(closedToday.length===0) tsInsight='You still have your full daily risk available. Focus on quality setups instead of quantity.';
   else if(todayStreak>=2) tsInsight='You\'re on a '+todayStreak+'-trade loss streak. Consider a short break to reset before your next entry.';
@@ -6604,7 +6581,10 @@ function renderStats(){
 
   // ---- 👻 Ghost Loss Analysis — Premium UI ----
   const ghostLossesAll = s.losses.filter(t=>t.ghostLoss===true);
-  if(ghostLossesAll.length>0){
+  if(ghostLossesAll.length>0 && !isProUser()){
+    wrap.appendChild(renderProUpgradeTeaser('Ghost Loss Analysis'));
+  }
+  if(ghostLossesAll.length>0 && isProUser()){
 
     // ── Computed values ──
     const realLossCount = s.losses.length - ghostLossesAll.length;
@@ -11892,146 +11872,6 @@ async function importMT5HtmlFile(file){
 }
 
 /* ============================================================
-   MT4 HTML REPORT IMPORT — MT4's "Statement" report uses a single
-   flat table with different column names than MT5 (Ticket, Item,
-   Size instead of Position, Symbol, Volume), so it gets its own
-   parser rather than reusing the MT5 one.
-   ============================================================ */
-function parseMT4Html(htmlText){
-  const out={ trades:[], errors:[], tableFound:false };
-  let doc;
-  try{ doc=new DOMParser().parseFromString(htmlText, 'text/html'); }
-  catch(e){ out.errors.push('Could not read this file as HTML.'); return out; }
-
-  const tables=[...doc.querySelectorAll('table')];
-  if(!tables.length){
-    out.errors.push("No tables found in this file — in MT4, open Account History, right-click → Save as Report, then upload that .html file.");
-    return out;
-  }
-
-  function norm(cell){ return (cell||'').trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
-
-  // Find the row that looks most like the MT4 closed-trades header:
-  // Ticket, Open Time, Type, Size, Item, Price, S/L, T/P, Close Time, Price, Commission, Taxes, Swap, Profit
-  let bestRow=null, bestCells=null, bestNorm=null, bestScore=-1, bestTable=null;
-  tables.forEach(table=>{
-    [...table.querySelectorAll('tr')].forEach(tr=>{
-      const cells=[...tr.querySelectorAll('th,td')].map(c=>(c.textContent||'').trim());
-      if(cells.length<10) return;
-      const n=cells.map(norm);
-      let score=0;
-      if(n.includes('ticket')) score+=2;
-      if(n.includes('item')) score+=2;
-      if(n.includes('size')) score+=2;
-      if(n.includes('profit')) score+=2;
-      if(n.includes('sl')) score+=1;
-      if(n.includes('tp')) score+=1;
-      if(n.filter(c=>c==='time').length>=2) score+=2;
-      if(n.filter(c=>c==='price').length>=2) score+=2;
-      if(score>bestScore){ bestScore=score; bestRow=tr; bestCells=cells; bestNorm=n; bestTable=table; }
-    });
-  });
-
-  if(!bestTable || bestScore<6){
-    out.errors.push("Could not recognize a closed-trades table — make sure you saved the Account History report from MT4 (Terminal → Account History → right-click → Save as Report), not a statement screenshot.");
-    return out;
-  }
-  out.tableFound=true;
-
-  const n=bestNorm;
-  function firstIdx(name){ return n.indexOf(name); }
-  function allIdx(name){ const r=[]; n.forEach((c,i)=>{ if(c===name) r.push(i); }); return r; }
-  const timeIdxs=allIdx('time'), priceIdxs=allIdx('price');
-  const ticketIdx=firstIdx('ticket'), typeIdx=firstIdx('type'), sizeIdx=firstIdx('size'), itemIdx=firstIdx('item');
-  const commissionIdx=firstIdx('commission'), swapIdx=firstIdx('swap'), profitIdx=firstIdx('profit'), taxesIdx=firstIdx('taxes');
-  const openTimeIdx=timeIdxs[0], closeTimeIdx= timeIdxs.length>1?timeIdxs[1]:timeIdxs[0];
-  const openPriceIdx=priceIdxs[0], closePriceIdx= priceIdxs.length>1?priceIdxs[1]:priceIdxs[0];
-
-  if(itemIdx<0 || profitIdx<0){
-    out.errors.push('Found a table, but could not match its Item/Profit columns.');
-    return out;
-  }
-
-  const allRowsInDoc=[...doc.querySelectorAll('tr')];
-  const headerPos=allRowsInDoc.indexOf(bestRow);
-  const candidateRows = headerPos>-1 ? allRowsInDoc.slice(headerPos+1) : allRowsInDoc;
-
-  candidateRows.forEach(tr=>{
-    const cells=[...tr.querySelectorAll('th,td')].map(c=>(c.textContent||'').trim());
-    if(cells.length < Math.max(itemIdx,profitIdx,sizeIdx)+1) return;
-    const typeText=(typeIdx>-1?cells[typeIdx]:'').toLowerCase();
-    if(!/^(buy|sell)/.test(typeText)) return; // skips balance/credit rows, headers, totals
-    try{
-      const direction = typeText.startsWith('sell') ? 'Short' : 'Long';
-      const entryPrice = openPriceIdx>-1 ? tvCleanNumber(cells[openPriceIdx]) : NaN;
-      const exitPrice = closePriceIdx>-1 ? tvCleanNumber(cells[closePriceIdx]) : NaN;
-      const volume = sizeIdx>-1 ? tvCleanNumber(cells[sizeIdx]) : NaN;
-      const openTime = openTimeIdx>-1 ? mt5ParseDate(cells[openTimeIdx]) : '';
-      const closeTime = closeTimeIdx>-1 ? mt5ParseDate(cells[closeTimeIdx]) : openTime;
-      const commission = commissionIdx>-1 ? tvCleanNumber(cells[commissionIdx]) : 0;
-      const taxes = taxesIdx>-1 ? tvCleanNumber(cells[taxesIdx]) : 0;
-      const swap = swapIdx>-1 ? tvCleanNumber(cells[swapIdx]) : 0;
-      const grossProfit = profitIdx>-1 ? tvCleanNumber(cells[profitIdx]) : NaN;
-      if(isNaN(grossProfit)) return;
-      const net = grossProfit + (isNaN(commission)?0:commission) + (isNaN(taxes)?0:taxes) + (isNaN(swap)?0:swap);
-      const symbol=(cells[itemIdx]||'').toUpperCase();
-      const ticket = ticketIdx>-1 ? cells[ticketIdx] : '';
-      const resultLabel = net>0.0001?'Win':net<-0.0001?'Loss':'Breakeven';
-      const fp = ticket ? ('mt4pos_'+ticket) : ['mt4',symbol,direction,openTime,closeTime,net.toFixed(2)].join('|');
-      out.trades.push({
-        datetime: openTime||closeTime, instrument: symbol, direction,
-        entryPrice: isNaN(entryPrice)?0:entryPrice, exitPrice: isNaN(exitPrice)?0:exitPrice,
-        lotSize: isNaN(volume)?'':volume, pnl: net.toFixed(2), result: resultLabel,
-        mt4ImportKey: fp, notes: ''
-      });
-    }catch(e){ out.errors.push('Skipped a row due to a parsing error.'); }
-  });
-
-  if(!out.trades.length && !out.errors.length){
-    out.errors.push('Found a trades table but no closed Buy/Sell rows to import.');
-  }
-  return out;
-}
-
-async function importMT4HtmlFile(file){
-  if(!file) return {added:0, dup:0, errors:['No file selected.']};
-  let text;
-  try{ text=await file.text(); }
-  catch(e){ return {added:0, dup:0, errors:['Could not read the file.']}; }
-
-  const parsed=parseMT4Html(text);
-  if(!parsed.tableFound){
-    return {added:0, dup:0, errors: parsed.errors.length?parsed.errors:['Could not find a trades table in this file.']};
-  }
-
-  let added=0, dup=0;
-  parsed.trades.forEach(t=>{
-    const isDupe = DB.trades.some(x=>x.mt4ImportKey && x.mt4ImportKey===t.mt4ImportKey);
-    if(isDupe){ dup++; return; }
-    DB.trades.push({
-      id:'mt4h_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-      datetime: t.datetime||'',
-      instrument: t.instrument||'',
-      direction: t.direction||'Long',
-      entryPrice: t.entryPrice||0,
-      exitPrice: t.exitPrice||0,
-      lotSize: t.lotSize||'',
-      stopLoss:'', takeProfit:'',
-      pnl: t.pnl, rMultiple:'',
-      result: t.result,
-      setup:'', mistakes:[], emotion:'',
-      notes: 'MT4 report import',
-      mt4ImportKey: t.mt4ImportKey,
-      isGhost:false, ruleBreak:false, execScore:'', images:[]
-    });
-    added++;
-  });
-
-  if(added>0){ save(); checkAndNotifyRuleBreak(); }
-  return {added, dup, errors: parsed.errors};
-}
-
-/* ============================================================
    CTRADER CSV IMPORT — parses a closed-positions export from
    cTrader's History tab (.csv) and pulls trades into the journal.
    Column names vary slightly by cTrader version/locale, so columns
@@ -13137,21 +12977,14 @@ function renderMT5Import(){
     'After confirming trades sync correctly, enable Row Level Security on this table with no policies — access should only go through Edge Vault\'s secured backend, never the public key directly.'));
   hdr.appendChild(s1);
 
-  function maskSecret(s){ return s ? '•'.repeat(Math.min(s.length,28)) : s; }
-
   // ── Step 2: Your User ID ──
   const s2 = makeStepBox('2','Copy your User ID into the EA',
     'This identifies your account. Paste it into the EA input below.');
   const uidBox = el('div',{style:'margin-top:10px;margin-left:34px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:10px 14px;font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all;'});
-  let uidRevealed = false;
-  function refreshUid(){
-    const uid = window._evUid||'';
-    uidBox.textContent = uid ? (uidRevealed ? uid : maskSecret(uid)) : 'Log in first to see your User ID';
-  }
+  function refreshUid(){ uidBox.textContent = window._evUid || 'Log in first to see your User ID'; }
   refreshUid();
   const uidInterval = setInterval(refreshUid, 1000);
-  const uidBtnRow = el('div',{style:'display:flex;gap:8px;margin-top:8px;margin-left:34px;'});
-  const copyUidBtn = el('button',{style:'padding:7px 16px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'📋 Copy User ID');
+  const copyUidBtn = el('button',{style:'margin-top:8px;margin-left:34px;padding:7px 16px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'📋 Copy User ID');
   copyUidBtn.onclick=()=>{
     const uid = window._evUid||'';
     if(!uid){ copyUidBtn.textContent='⚠️ Not logged in'; setTimeout(()=>copyUidBtn.textContent='📋 Copy User ID',2000); return; }
@@ -13159,26 +12992,18 @@ function renderMT5Import(){
     copyUidBtn.textContent='✅ Copied!';
     setTimeout(()=>copyUidBtn.textContent='📋 Copy User ID',2000);
   };
-  const uidEyeBtn = el('button',{style:'padding:7px 14px;background:var(--panel);border:1px solid var(--line);color:var(--text-dim);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'👁 Show');
-  uidEyeBtn.onclick=()=>{ uidRevealed=!uidRevealed; refreshUid(); uidEyeBtn.textContent = uidRevealed ? '🙈 Hide' : '👁 Show'; };
-  uidBtnRow.appendChild(copyUidBtn); uidBtnRow.appendChild(uidEyeBtn);
   s2.appendChild(uidBox);
-  s2.appendChild(uidBtnRow);
+  s2.appendChild(copyUidBtn);
   hdr.appendChild(s2);
 
   // ── Step 2b: Your Sync Token ──
   const s2b = makeStepBox('🔒','Copy your Sync Token into the EA',
     'This is your EA\'s password — it proves trades are really coming from you. Keep it private, same as an account password.');
   const tokenBox = el('div',{style:'margin-top:10px;margin-left:34px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:10px 14px;font-size:12px;font-family:monospace;color:var(--accent);word-break:break-all;'});
-  let tokenRevealed = false;
-  function refreshToken(){
-    const token = window._evSyncToken||'';
-    tokenBox.textContent = token ? (tokenRevealed ? token : maskSecret(token)) : 'Log in first to see your Sync Token';
-  }
+  function refreshToken(){ tokenBox.textContent = window._evSyncToken || 'Log in first to see your Sync Token'; }
   refreshToken();
   const tokenInterval = setInterval(refreshToken, 1000);
-  const tokenBtnRow = el('div',{style:'display:flex;gap:8px;margin-top:8px;margin-left:34px;'});
-  const copyTokenBtn = el('button',{style:'padding:7px 16px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'📋 Copy Sync Token');
+  const copyTokenBtn = el('button',{style:'margin-top:8px;margin-left:34px;padding:7px 16px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'📋 Copy Sync Token');
   copyTokenBtn.onclick=()=>{
     const token = window._evSyncToken||'';
     if(!token){ copyTokenBtn.textContent='⚠️ Not logged in'; setTimeout(()=>copyTokenBtn.textContent='📋 Copy Sync Token',2000); return; }
@@ -13186,13 +13011,9 @@ function renderMT5Import(){
     copyTokenBtn.textContent='✅ Copied!';
     setTimeout(()=>copyTokenBtn.textContent='📋 Copy Sync Token',2000);
   };
-  const tokenEyeBtn = el('button',{style:'padding:7px 14px;background:var(--panel);border:1px solid var(--line);color:var(--text-dim);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;'},'👁 Show');
-  tokenEyeBtn.onclick=()=>{ tokenRevealed=!tokenRevealed; refreshToken(); tokenEyeBtn.textContent = tokenRevealed ? '🙈 Hide' : '👁 Show'; };
-  tokenBtnRow.appendChild(copyTokenBtn); tokenBtnRow.appendChild(tokenEyeBtn);
   s2b.appendChild(tokenBox);
-  s2b.appendChild(tokenBtnRow);
+  s2b.appendChild(copyTokenBtn);
   hdr.appendChild(s2b);
-
 
   // ── Step 3: EA Code (kept for later — moved to bottom, see eaPanel) ──
   const s3 = makeStepBox('3','Add the EA to MetaTrader 5',
@@ -13274,168 +13095,6 @@ void OnTradeTransaction(const MqlTradeTransaction &trans,
   else{ Print("Edge Vault: Sync failed code=",code," — check WebRequest URL whitelist and Sync Token"); }
 }`;
   s3.appendChild(makeCodeBlock(eaCode,'📋 Copy EA', true));
-  const s3b = makeStepBox('3','Add the EA to MetaTrader 4',
-    'MT4 version — open MetaEditor → New → Expert Advisor → paste this code → compile → drag onto any chart.');
-  const eaCodeMt4 = `//+------------------------------------------------------------------+
-//| Edge Vault Sync EA (MT4)  v1.0                                    |
-//| Auto-sends closed trades to Edge Vault via your secured endpoint |
-//| ► Tools → Options → Expert Advisors → Allow WebRequests          |
-//|   Add: https://YOUR-EDGEVAULT-DOMAIN                             |
-//|   (replace with your real Netlify domain, no trailing slash)     |
-//+------------------------------------------------------------------+
-#property strict
-
-input string UserID    = "PASTE_YOUR_USER_ID_HERE";     // Your Edge Vault User ID
-input string SyncToken = "PASTE_YOUR_SYNC_TOKEN_HERE";   // Your Edge Vault Sync Token — keep private
-
-string EDGEVAULT_API_URL = "https://YOUR-EDGEVAULT-DOMAIN/.netlify/functions/ea-insert";
-int lastHistoryTotal = -1;
-
-int OnInit(){
-  lastHistoryTotal = OrdersHistoryTotal();
-  Print("Edge Vault Sync EA (MT4) ready. User: ", UserID);
-  return(INIT_SUCCEEDED);
-}
-void OnDeinit(const int reason) {}
-
-// MT4 has no OnTradeTransaction, so we watch the closed-orders history
-// on every tick and send anything new since the last check.
-void OnTick(){
-  int total = OrdersHistoryTotal();
-  if(total <= lastHistoryTotal){ lastHistoryTotal = total; return; }
-  for(int i = lastHistoryTotal; i < total; i++){
-    if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
-    if(OrderType() != OP_BUY && OrderType() != OP_SELL) continue; // skip balance/credit ops
-    SendTradeToEdgeVault();
-  }
-  lastHistoryTotal = total;
-}
-
-void SendTradeToEdgeVault(){
-  string sym     = OrderSymbol();
-  string dirStr  = (OrderType()==OP_BUY) ? "buy" : "sell";
-  double vol     = OrderLots();
-  double openP   = OrderOpenPrice();
-  double closeP  = OrderClosePrice();
-  datetime openT  = OrderOpenTime();
-  datetime closeT = OrderCloseTime();
-  double sl      = OrderStopLoss();
-  double tp      = OrderTakeProfit();
-  double comm    = OrderCommission();
-  double swap    = OrderSwap();
-  double profit  = OrderProfit();
-
-  string payload = "{"
-    +"\\"uid\\":\\""+UserID+"\\","
-    +"\\"syncToken\\":\\""+SyncToken+"\\","
-    +"\\"symbol\\":\\""+sym+"\\","
-    +"\\"type\\":\\""+dirStr+"\\","
-    +"\\"volume\\":"+DoubleToString(vol,2)+","
-    +"\\"open_price\\":"+DoubleToString(openP,5)+","
-    +"\\"close_price\\":"+DoubleToString(closeP,5)+","
-    +"\\"open_time\\":\\""+TimeToString(openT,TIME_DATE|TIME_SECONDS)+"\\","
-    +"\\"close_time\\":\\""+TimeToString(closeT,TIME_DATE|TIME_SECONDS)+"\\","
-    +"\\"sl\\":"+DoubleToString(sl,5)+","
-    +"\\"tp\\":"+DoubleToString(tp,5)+","
-    +"\\"commission\\":"+DoubleToString(comm,2)+","
-    +"\\"swap\\":"+DoubleToString(swap,2)+","
-    +"\\"profit\\":"+DoubleToString(profit,2)
-    +"}";
-
-  char post[]; StringToCharArray(payload,post,0,StringLen(payload));
-  char res[];  string resHeaders;
-  string headers = "Content-Type: application/json\\r\\n";
-
-  int code = WebRequest("POST",EDGEVAULT_API_URL,headers,10000,post,res,resHeaders);
-  if(code==201){ Print("Edge Vault: Trade synced — ",sym," ",dirStr," P&L:",DoubleToString(profit,2)); }
-  else{ Print("Edge Vault: Sync failed code=",code," — check WebRequest URL whitelist and Sync Token"); }
-}`;
-  s3b.appendChild(makeCodeBlock(eaCodeMt4,'📋 Copy MT4 EA', true));
-
-  // ── Step 3c: cBot Code for cTrader ──
-  const s3c = makeStepBox('3','Add the cBot to cTrader',
-    'Trading on cTrader instead? Open cTrader Automate → Add cBot → New cBot → name it "EdgeVaultSync" → paste this code → Build → drag onto any chart. When starting it, set <strong>Access Rights</strong> to <strong>Full Access</strong> so it is allowed to reach the internet.');
-  const cBotCode = `using System;
-using System.Net.Http;
-using System.Text;
-using cAlgo.API;
-
-// Edge Vault Sync cBot v1.0
-// Auto-sends closed trades to Edge Vault via your secured endpoint.
-// Requires "Full Access" rights when started (for outbound HTTP requests).
-
-namespace cAlgo.Robots
-{
-    [Robot(TimeZone = TimeZones.UTC, AccessRights = AccessRights.FullAccess)]
-    public class EdgeVaultSync : Robot
-    {
-        [Parameter("Edge Vault User ID", DefaultValue = "PASTE_YOUR_USER_ID_HERE")]
-        public string UserID { get; set; }
-
-        [Parameter("Edge Vault Sync Token", DefaultValue = "PASTE_YOUR_SYNC_TOKEN_HERE")]
-        public string SyncToken { get; set; }
-
-        // Replace with your real Netlify domain, no trailing slash
-        private const string EdgeVaultApiUrl = "https://YOUR-EDGEVAULT-DOMAIN/.netlify/functions/ea-insert";
-        private static readonly HttpClient client = new HttpClient();
-
-        protected override void OnStart()
-        {
-            History.HistoryItemAdded += OnHistoryItemAdded;
-            Print("Edge Vault Sync cBot ready. User: " + UserID);
-        }
-
-        protected override void OnStop()
-        {
-            History.HistoryItemAdded -= OnHistoryItemAdded;
-        }
-
-        private void OnHistoryItemAdded(HistoricalTradeEventArgs args)
-        {
-            SendTradeToEdgeVault(args.HistoricalTrade);
-        }
-
-        private async void SendTradeToEdgeVault(HistoricalTrade t)
-        {
-            string dirStr = t.TradeType == TradeType.Buy ? "buy" : "sell";
-            // Standard FX lot = 100,000 units — adjust the divisor if you trade
-            // an instrument with a different contract size.
-            double volumeLots = t.VolumeInUnits / 100000.0;
-
-            string payload = "{"
-                + "\\"uid\\":\\"" + UserID + "\\","
-                + "\\"syncToken\\":\\"" + SyncToken + "\\","
-                + "\\"symbol\\":\\"" + t.SymbolName + "\\","
-                + "\\"type\\":\\"" + dirStr + "\\","
-                + "\\"volume\\":" + volumeLots.ToString("0.####") + ","
-                + "\\"open_price\\":" + t.EntryPrice.ToString("0.#####") + ","
-                + "\\"close_price\\":" + t.ClosingPrice.ToString("0.#####") + ","
-                + "\\"open_time\\":\\"" + t.EntryTime.ToString("yyyy.MM.dd HH:mm:ss") + "\\","
-                + "\\"close_time\\":\\"" + t.ClosingTime.ToString("yyyy.MM.dd HH:mm:ss") + "\\","
-                + "\\"sl\\":" + (t.StopLoss ?? 0).ToString("0.#####") + ","
-                + "\\"tp\\":" + (t.TakeProfit ?? 0).ToString("0.#####") + ","
-                + "\\"commission\\":" + t.Commissions.ToString("0.##") + ","
-                + "\\"swap\\":" + t.Swap.ToString("0.##") + ","
-                + "\\"profit\\":" + t.NetProfit.ToString("0.##")
-                + "}";
-
-            try
-            {
-                var content = new StringContent(payload, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync(EdgeVaultApiUrl, content);
-                if ((int)response.StatusCode == 201)
-                    Print("Edge Vault: Trade synced — " + t.SymbolName + " " + dirStr + " P&L:" + t.NetProfit.ToString("0.##"));
-                else
-                    Print("Edge Vault: Sync failed code=" + (int)response.StatusCode + " — check Sync Token and endpoint URL");
-            }
-            catch (Exception ex)
-            {
-                Print("Edge Vault: Sync error — " + ex.Message);
-            }
-        }
-    }
-}`;
-  s3c.appendChild(makeCodeBlock(cBotCode,'📋 Copy cBot', true));
 
   // ── Step 4: Auto-sync status + manual fetch ──
   const syncPanel = el('div',{class:'panel'});
@@ -13571,46 +13230,6 @@ namespace cAlgo.Robots
   mt5hPanel.appendChild(mt5hStatusEl);
   wrap.appendChild(mt5hPanel);
 
-  // ── MT4 HTML report import ──
-  const mt4hPanel = el('div',{class:'panel'});
-  mt4hPanel.appendChild(el('h3',{style:'margin:0 0 8px;'},'📄 Import from MT4 (.html report)'));
-  mt4hPanel.appendChild(el('p',{style:'font-size:12px;color:var(--text-dim);margin:0 0 14px;line-height:1.6;'},
-    "Saved an MT4 Account History report as an HTML file? Upload it here — closed trades are read automatically, duplicates are skipped, and anything that can't be parsed is reported instead of breaking the import."));
-
-  const mt4hFileLabel = el('label',{style:'display:block;width:100%;padding:14px;background:var(--panel-2);border:1.5px dashed var(--line);color:var(--text-dim);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;margin-bottom:10px;'},'📁 Choose MT4 .html report');
-  const mt4hFileInput = el('input',{type:'file', accept:'.html,.htm,text/html', style:'display:none;'});
-  mt4hFileLabel.appendChild(mt4hFileInput);
-  const mt4hStatusEl = el('div',{style:'font-size:13px;text-align:center;min-height:20px;color:var(--text-dim);white-space:pre-line;'});
-
-  mt4hFileInput.onchange = async () => {
-    const file = mt4hFileInput.files && mt4hFileInput.files[0];
-    mt4hFileInput.value='';
-    if(!file) return;
-    mt4hStatusEl.style.color='var(--text-dim)';
-    mt4hStatusEl.textContent='⏳ Reading '+file.name+'…';
-    mt4hFileLabel.style.pointerEvents='none'; mt4hFileLabel.style.opacity='0.6';
-    try{
-      const r = await importMT4HtmlFile(file);
-      let lines=[];
-      if(r.added>0) lines.push('✅ '+r.added+' new trade'+(r.added!==1?'s':'')+' imported!');
-      else if(!r.errors.length || r.dup>0) lines.push('✅ No new trades — nothing left to import.');
-      if(r.dup>0) lines.push(r.dup+' duplicate'+(r.dup!==1?'s':'')+' skipped (already in journal).');
-      if(r.errors.length) lines.push('⚠️ '+r.errors.length+' issue'+(r.errors.length!==1?'s':'')+" found:\n"+r.errors.slice(0,5).join('\n')+(r.errors.length>5?'\n…and '+(r.errors.length-5)+' more':''));
-      if(!lines.length) lines.push('❌ Could not import this file.');
-      mt4hStatusEl.textContent = lines.join('\n');
-      mt4hStatusEl.style.color = r.added>0 ? '#22c55e' : (r.errors.length && !r.added ? '#ef4444' : 'var(--text-dim)');
-      if(r.added>0) render();
-    }catch(err){
-      mt4hStatusEl.textContent='❌ '+(err && err.message || 'Failed to import this file.');
-      mt4hStatusEl.style.color='#ef4444';
-    }
-    mt4hFileLabel.style.pointerEvents=''; mt4hFileLabel.style.opacity='';
-  };
-
-  mt4hPanel.appendChild(mt4hFileLabel);
-  mt4hPanel.appendChild(mt4hStatusEl);
-  wrap.appendChild(mt4hPanel);
-
   // ── cTrader CSV import ──
   const ctPanel = el('div',{class:'panel'});
   ctPanel.appendChild(el('h3',{style:'margin:0 0 8px;'},'📄 Import from cTrader (.csv)'));
@@ -13655,12 +13274,8 @@ namespace cAlgo.Robots
   const eaPanel = el('div',{class:'panel'});
   eaPanel.appendChild(el('h3',{style:'margin:0 0 4px;font-size:14px;color:var(--text-dim);'},'⚙️ Advanced: EA Setup Code'));
   eaPanel.appendChild(el('p',{style:'font-size:11.5px;color:var(--text-faint);margin:0 0 14px;line-height:1.6;'},
-    "One-time, optional. You don't need to read this — just tap Copy EA and paste it into MetaEditor. Use whichever version matches your platform — you only need one."));
+    "One-time, optional. You don't need to read this — just tap Copy EA and paste it into MetaEditor."));
   eaPanel.appendChild(s3);
-  eaPanel.appendChild(el('div',{style:'height:18px;'}));
-  eaPanel.appendChild(s3b);
-  eaPanel.appendChild(el('div',{style:'height:18px;'}));
-  eaPanel.appendChild(s3c);
   wrap.appendChild(eaPanel);
 
   return wrap;
@@ -13862,6 +13477,78 @@ function clean(obj){ return JSON.parse(JSON.stringify(obj)); } // strips undefin
 
 function metaDocRef(uid){ return doc(db,'users',uid); }
 function tradesColRef(uid){ return collection(db,'users',uid,'trades'); }
+function accountsColRef(uid){ return collection(db,'users',uid,'accounts'); }
+function accountDocRef(uid, accountId){ return doc(db,'users',uid,'accounts',accountId); }
+
+// ---- Multi-account foundation (Stage 1) ----
+// For now every user has exactly one account, 'account-1', and nothing in
+// the UI lets them add more yet — this just lays the groundwork so trades
+// are tagged correctly from day one, and existing users get migrated
+// invisibly. The actual account switcher UI comes in a later stage.
+window._evActiveAccountId = 'account-1';
+window._evAccounts = [];
+
+async function ensureDefaultAccount(uid){
+  try{
+    const ref = accountDocRef(uid, 'account-1');
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref, {
+        name: 'Account 1',
+        syncToken: window._evSyncToken || null,
+        createdAt: new Date().toISOString()
+      });
+    }
+    const allSnap = await getDocs(accountsColRef(uid));
+    window._evAccounts = allSnap.docs.map(d=>({ id:d.id, ...d.data() }));
+  }catch(e){
+    console.warn('Default account setup failed', e);
+  }
+}
+
+// ---- Plan / subscription tier ----
+// window._evPlan is 'basic' or 'pro'. Defaults to 'basic' (the safe default)
+// until we've actually confirmed a Pro plan from Firestore.
+window._evPlan = 'basic';
+function isProUser(){ return window._evPlan === 'pro'; }
+
+// On first login coming from the landing page quiz (?plan=pro&trial=1 in the
+// URL), save that plan choice permanently onto the user's account so it
+// survives refreshes/future logins. We only ever WRITE plan here if the
+// account doesn't already have one saved, so a stale link can't downgrade
+// someone who already upgraded some other way later.
+async function ensurePlanFromUrlOrAccount(uid){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const urlPlan = params.get('plan'); // 'basic' | 'pro' | null
+    const snap = await getDoc(metaDocRef(uid));
+    const savedPlan = snap.exists() ? snap.data().plan : null;
+
+    if(savedPlan === 'pro' || savedPlan === 'basic'){
+      window._evPlan = savedPlan;
+    } else if(urlPlan === 'pro' || urlPlan === 'basic'){
+      window._evPlan = urlPlan;
+      await setDoc(metaDocRef(uid), { plan: urlPlan }, { merge:true });
+    } else {
+      window._evPlan = 'basic';
+    }
+  }catch(e){
+    console.warn('Plan lookup failed, defaulting to basic', e);
+    window._evPlan = 'basic';
+  }
+}
+
+// Small reusable "this is a Pro feature" placeholder, styled to match the
+// app's cards rather than a plain browser alert.
+function renderProUpgradeTeaser(featureName){
+  const box = el('div',{style:'background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;margin:16px 0;'});
+  box.appendChild(el('div',{style:'font-size:28px;margin-bottom:8px;'},'🔒'));
+  box.appendChild(el('div',{style:'font-weight:700;font-size:15px;margin-bottom:6px;color:var(--text);'},featureName+' is a Pro feature'));
+  box.appendChild(el('div',{style:'font-size:13px;color:var(--text-dim);margin-bottom:16px;'},'Upgrade to Vault Pro to unlock this.'));
+  const btn = el('a',{href:'https://edgevault-e14.pages.dev/?upgrade=pro',style:'display:inline-block;background:#D4AF37;color:#1a1300;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;'},'Upgrade to Pro');
+  box.appendChild(btn);
+  return box;
+}
 
 // EA sync token: a per-user secret the MT5 EA uses to prove it's really
 // that user, since it can't hold a Firebase login session. Generated
@@ -13898,6 +13585,7 @@ onAuthStateChanged(auth, async (user)=>{
   container.classList.remove('hidden');
   document.body.classList.remove('pre-auth');
   window._evUid = user.uid;
+  await ensurePlanFromUrlOrAccount(user.uid);
   activeTab='journal';
   render();
   initVoiceMicFab();
@@ -13907,7 +13595,8 @@ onAuthStateChanged(auth, async (user)=>{
   }, 80);
   renderSyncBar(user);
   ensureInitialSync(user.uid);
-  ensureSyncToken(user.uid);
+  await ensureSyncToken(user.uid);
+  await ensureDefaultAccount(user.uid);
   if(window.startEaAutoSync) window.startEaAutoSync();
 });
 
